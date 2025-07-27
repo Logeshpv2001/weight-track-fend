@@ -11,7 +11,16 @@ import {
   Filler,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
-import { Input, DatePicker, Button, message, Card, Typography } from "antd";
+import {
+  Input,
+  DatePicker,
+  Button,
+  message,
+  Card,
+  Typography,
+  Popconfirm,
+} from "antd";
+import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 
 ChartJS.register(
@@ -37,29 +46,63 @@ const formatDate = (isoDate) => {
 function App() {
   const [weights, setWeights] = useState([]);
   const [form, setForm] = useState({ weight: "", date: "" });
+  const [editingId, setEditingId] = useState(null);
+
+  const API_BASE = "https://weight-track-bend.onrender.com";
 
   const fetchWeights = async () => {
-    const res = await axios.get("https://weight-track-bend.onrender.com");
+    const res = await axios.get(API_BASE);
     setWeights(res.data);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!form.weight || !form.date) return;
-
-    await axios.post("https://weight-track-bend.onrender.com", {
-      weight: parseFloat(form.weight),
-      date: form.date,
-    });
-
-    setForm({ weight: "", date: "" });
-    fetchWeights();
-    message.success("Weight entry added successfully!");
   };
 
   useEffect(() => {
     fetchWeights();
   }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.weight || !form.date) return;
+
+    try {
+      if (editingId) {
+        await axios.patch(`${API_BASE}/${editingId}`, {
+          weight: parseFloat(form.weight),
+          date: form.date,
+        });
+        message.success("Entry updated successfully");
+      } else {
+        await axios.post(API_BASE, {
+          weight: parseFloat(form.weight),
+          date: form.date,
+        });
+        message.success("Entry added successfully");
+      }
+
+      setForm({ weight: "", date: "" });
+      setEditingId(null);
+      fetchWeights();
+    } catch (err) {
+      message.error("Something went wrong");
+    }
+  };
+
+  const handleEdit = (entry) => {
+    setForm({
+      weight: entry.weight,
+      date: dayjs(entry.date).format("YYYY-MM-DD"),
+    });
+    setEditingId(entry._id);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`${API_BASE}/${id}`);
+      message.success("Deleted successfully");
+      fetchWeights();
+    } catch (err) {
+      message.error("Deletion failed");
+    }
+  };
 
   const chartData = {
     labels: weights.map((w) => formatDate(w.date)),
@@ -124,7 +167,7 @@ function App() {
               className="bg-blue-600 hover:bg-blue-700"
               block
             >
-              Add Entry
+              {editingId ? "Update Entry" : "Add Entry"}
             </Button>
           </form>
         </Card>
@@ -136,6 +179,7 @@ function App() {
                 <tr className="border-b">
                   <th className="text-left py-2">Date</th>
                   <th className="text-left py-2">Weight (kg)</th>
+                  <th className="text-left py-2">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -143,6 +187,21 @@ function App() {
                   <tr key={w._id} className="border-t">
                     <td className="py-1">{formatDate(w.date)}</td>
                     <td className="py-1">{w.weight}</td>
+                    <td className="py-1 flex gap-3 items-center">
+                      <Button
+                        icon={<EditOutlined />}
+                        onClick={() => handleEdit(w)}
+                        size="small"
+                      />
+                      <Popconfirm
+                        title="Are you sure to delete this entry?"
+                        onConfirm={() => handleDelete(w._id)}
+                        okText="Yes"
+                        cancelText="No"
+                      >
+                        <Button danger icon={<DeleteOutlined />} size="small" />
+                      </Popconfirm>
+                    </td>
                   </tr>
                 ))}
               </tbody>
