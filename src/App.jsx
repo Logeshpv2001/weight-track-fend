@@ -39,7 +39,7 @@ function App() {
   const [form, setForm] = useState({ weight: "", date: "" });
 
   const fetchWeights = async () => {
-    const res = await axios.get("http://localhost:5000/api/weights");
+    const res = await axios.get("https://weight-track-bend.onrender.com");
     setWeights(res.data);
   };
 
@@ -47,7 +47,7 @@ function App() {
     e.preventDefault();
     if (!form.weight || !form.date) return;
 
-    await axios.post("http://localhost:5000/api/weights", {
+    await axios.post("https://weight-track-bend.onrender.com", {
       weight: parseFloat(form.weight),
       date: form.date,
     });
