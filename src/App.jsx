@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 import axios from "axios";
 import {
   Chart as ChartJS,
@@ -15,7 +18,7 @@ import {
   Input,
   DatePicker,
   Button,
-  message,
+  // toast,
   Card,
   Typography,
   Popconfirm,
@@ -69,20 +72,29 @@ function App() {
           weight: parseFloat(form.weight),
           date: form.date,
         });
-        message.success("Entry updated successfully");
+        toast.success("Entry Updated successfully", {
+          className: "toast-success",
+          style: { backgroundColor: "#d1fae5", color: "#065f46" },
+        });
       } else {
         await axios.post(API_BASE, {
           weight: parseFloat(form.weight),
           date: form.date,
         });
-        message.success("Entry added successfully");
+        toast.success("Entry added successfully", {
+          className: "toast-success",
+          style: { backgroundColor: "#d1fae5", color: "#065f46" },
+        });
       }
 
       setForm({ weight: "", date: "" });
       setEditingId(null);
       fetchWeights();
     } catch (err) {
-      message.error("Something went wrong");
+      toast.error("Something went wrong", {
+        className: "toast-error",
+        style: { backgroundColor: "#fee2e2", color: "#991b1b" },
+      });
     }
   };
 
@@ -97,10 +109,18 @@ function App() {
   const handleDelete = async (id) => {
     try {
       await axios.delete(`${API_BASE}/${id}`);
-      message.success("Deleted successfully");
+
+      toast.success("Deleted successfully", {
+        className: "toast-success",
+        style: { backgroundColor: "#d1fae5", color: "#065f46" },
+      });
+
       fetchWeights();
     } catch (err) {
-      message.error("Deletion failed");
+      toast.error("Deletion failed", {
+        className: "toast-error",
+        style: { backgroundColor: "#fee2e2", color: "#991b1b" },
+      });
     }
   };
 
@@ -138,6 +158,8 @@ function App() {
         background: "linear-gradient(to bottom right, #e0f7fa, #f1f8ff)",
       }}
     >
+      <ToastContainer position="top-right" autoClose={3000} />
+
       <div className="max-w-xl mx-auto">
         <Card bordered={false} className="shadow-xl rounded-xl">
           <Title level={2} className="text-center mb-4 text-blue-700">
