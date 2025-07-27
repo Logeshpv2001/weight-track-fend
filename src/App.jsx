@@ -48,7 +48,7 @@ function App() {
   const [form, setForm] = useState({ weight: "", date: "" });
   const [editingId, setEditingId] = useState(null);
 
-  const API_BASE = "https://weight-track-bend.onrender.com";
+  const API_BASE = "https://weight-track-bend.onrender.com/api/weights";
 
   const fetchWeights = async () => {
     const res = await axios.get(API_BASE);
